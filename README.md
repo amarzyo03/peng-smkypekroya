@@ -89,6 +89,9 @@ Install dependency JavaScript:
 ```bash
 npm install
 ```
+```bash
+npm run dev
+```
 
 ---
 
