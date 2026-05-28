@@ -5,12 +5,15 @@ namespace App\Livewire;
 use Flux\Flux;
 use Livewire\Component;
 use Livewire\WithPagination;
+use Livewire\WithFileUploads;
 use App\Models\Siswa as SiswaModel;
+use Maatwebsite\Excel\Facades\Excel;
 
 class Siswa extends Component
 {
-    // Pagination
+    // Traits for pagination and file uploads
     use WithPagination;
+    use WithFileUploads;
 
     // Public properties for managing state
     public $editId = null;
@@ -26,6 +29,7 @@ class Siswa extends Component
     public $no_ujian;
     public $kompetensi_keahlian;
     public $status;
+    public $file;
 
 
     /*
@@ -185,14 +189,50 @@ class Siswa extends Component
     */
     public function import()
     {
-        // Implementasi logika import data siswa dari file Excel
-        // Anda bisa menggunakan package seperti Maatwebsite Excel untuk mempermudah proses ini
+        $this->validate([
+            'file' => 'required|mimes:xlsx,xls'
+        ]);
+
+        $rows = Excel::toArray([], $this->file);
+
+        if (empty($rows[0])) {
+            Flux::toast(
+                variant: 'danger',
+                text: 'File Excel kosong.'
+            );
+
+            return;
+        }
+
+        foreach ($rows[0] as $index => $row) {
+
+            // Skip header
+            if ($index == 0) {
+                continue;
+            }
+
+            // Skip row kosong
+            if (empty($row[0])) {
+                continue;
+            }
+
+            SiswaModel::create([
+                'nis' => $row[0] ?? '',
+                'nisn' => $row[1] ?? '',
+                'nama' => $row[2] ?? '',
+                'no_ujian' => $row[3] ?? '',
+                'kompetensi_keahlian' => $row[4] ?? '',
+                'status' => $row[5] ?? '',
+            ]);
+        }
 
         Flux::toast(
+            heading: 'Berhasil',
             variant: 'success',
-            text: "Data siswa berhasil diimpor."
+            text: 'Data siswa berhasil diimpor.'
         );
 
+        $this->reset('file');
         $this->dispatch('close-modal');
     }
 

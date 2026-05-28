@@ -8,8 +8,7 @@
     <div class="flex w-full items-center justify-end gap-1 md:w-auto mb-2">
 
         {{-- Search --}}
-        <flux:input icon="magnifying-glass" placeholder="Pencarian" size="sm" wire:model.live.debounce.300ms="search"
-            class="w-full" />
+        <flux:input icon="magnifying-glass" placeholder="Pencarian" size="sm" wire:model.live.debounce.300ms="search" class="w-full" />
 
         {{-- Export Button --}}
         <flux:button variant="primary" color="red" size="sm" wire:click="Export">
@@ -39,18 +38,12 @@
     <flux:table :paginate="$this->siswas">
         <flux:table.columns>
             <flux:table.column>#</flux:table.column>
-            <flux:table.column sortable :sorted="$sortBy === 'nis'" :direction="$sortDirection"
-                wire:click="sort('nis')">NIS</flux:table.column>
-            <flux:table.column sortable :sorted="$sortBy === 'nisn'" :direction="$sortDirection"
-                wire:click="sort('nisn')">NISN</flux:table.column>
-            <flux:table.column sortable :sorted="$sortBy === 'nama'" :direction="$sortDirection"
-                wire:click="sort('nama')">Nama</flux:table.column>
-            <flux:table.column sortable :sorted="$sortBy === 'no_ujian'" :direction="$sortDirection"
-                wire:click="sort('no_ujian')">No Ujian</flux:table.column>
-            <flux:table.column sortable :sorted="$sortBy === 'kompetensi_keahlian'" :direction="$sortDirection"
-                wire:click="sort('kompetensi_keahlian')">Kompetensi Keahlian</flux:table.column>
-            <flux:table.column sortable :sorted="$sortBy === 'status'" :direction="$sortDirection"
-                wire:click="sort('status')">Status</flux:table.column>
+            <flux:table.column sortable :sorted="$sortBy === 'nis'" :direction="$sortDirection" wire:click="sort('nis')">NIS</flux:table.column>
+            <flux:table.column sortable :sorted="$sortBy === 'nisn'" :direction="$sortDirection" wire:click="sort('nisn')">NISN</flux:table.column>
+            <flux:table.column sortable :sorted="$sortBy === 'nama'" :direction="$sortDirection" wire:click="sort('nama')">Nama</flux:table.column>
+            <flux:table.column sortable :sorted="$sortBy === 'no_ujian'" :direction="$sortDirection" wire:click="sort('no_ujian')">No Ujian</flux:table.column>
+            <flux:table.column sortable :sorted="$sortBy === 'kompetensi_keahlian'" :direction="$sortDirection" wire:click="sort('kompetensi_keahlian')">Kompetensi Keahlian</flux:table.column>
+            <flux:table.column sortable :sorted="$sortBy === 'status'" :direction="$sortDirection" wire:click="sort('status')">Status</flux:table.column>
             <flux:table.column></flux:table.column>
         </flux:table.columns>
 
@@ -64,8 +57,7 @@
                     <flux:table.cell>{{ $row->no_ujian }}</flux:table.cell>
                     <flux:table.cell>{{ ucfirst($row->kompetensi_keahlian) }}</flux:table.cell>
                     <flux:table.cell>
-                        <flux:badge variant="solid" color="{{ $row->status == 'lulus' ? 'green' : 'red' }}"
-                            size="sm" inset="top bottom">{{ strtoupper($row->status) }}
+                        <flux:badge variant="solid" color="{{ $row->status == 'lulus' ? 'green' : 'red' }}" size="sm" inset="top bottom">{{ strtoupper($row->status) }}
                         </flux:badge>
                     </flux:table.cell>
                     <flux:table.cell>
@@ -78,8 +70,7 @@
                                     </flux:menu.item>
                                 </flux:modal.trigger>
                                 <flux:modal.trigger name="delete-siswa">
-                                    <flux:menu.item icon="trash" variant="danger"
-                                        wire:click="confirmDelete({{ $row->id }})">
+                                    <flux:menu.item icon="trash" variant="danger" wire:click="confirmDelete({{ $row->id }})">
                                         Delete
                                     </flux:menu.item>
                                 </flux:modal.trigger>
@@ -138,8 +129,7 @@
                         Cancel
                     </flux:button>
                 </flux:modal.close>
-                <flux:button wire:click="save" wire:loading.attr="disabled" variant="primary" color="blue"
-                    size="sm" class="w-full">
+                <flux:button wire:click="save" wire:loading.attr="disabled" variant="primary" color="blue" size="sm" class="w-full">
                     <span wire:loading.remove wire:target="save">
                         {{ $editId ? 'Update' : 'Save' }}
                     </span>
@@ -153,8 +143,7 @@
     </flux:modal>
 
     {{-- Modal delete --}}
-    <flux:modal name="delete-siswa" class="min-w-[22rem]"
-        x-on:close-modal.window="$flux.modal('delete-siswa').close()">
+    <flux:modal name="delete-siswa" class="min-w-[22rem]" x-on:close-modal.window="$flux.modal('delete-siswa').close()">
         <div class="space-y-6">
 
             {{-- Modal heading --}}
@@ -195,8 +184,7 @@
     </flux:modal>
 
     {{-- Modal upload --}}
-    <flux:modal name="upload-siswa" class="min-w-[22rem]"
-        x-on:close-modal.window="$flux.modal('upload-siswa').close()">
+    <flux:modal name="upload-siswa" class="min-w-[22rem]" x-on:close-modal.window="$flux.modal('upload-siswa').close()">
         <div class="space-y-6">
 
             {{-- Modal heading --}}
@@ -210,8 +198,7 @@
                     Pastikan format file sesuai dengan template yang disediakan.
                 </flux:text>
                 {{-- download template --}}
-                <flux:button variant="primary" color="emerald" size="sm" class="mt-3 w-full"
-                    wire:click="downloadTemplate">
+                <flux:button variant="primary" color="emerald" size="sm" class="mt-3 w-full" wire:click="downloadTemplate">
                     Download template
                 </flux:button>
             </div>
@@ -227,8 +214,7 @@
                         Cancel
                     </flux:button>
                 </flux:modal.close>
-                <flux:button wire:click="import" wire:loading.attr="disabled" variant="primary" color="emerald"
-                    size="sm" class="w-full">
+                <flux:button wire:click="import" wire:loading.attr="disabled" variant="primary" color="emerald" size="sm" class="w-full">
                     <span wire:loading.remove wire:target="import">
                         Upload
                     </span>
