@@ -60,20 +60,6 @@ The goal of this project is to provide a scalable, clean, and developer-friendly
 
 # Installation
 
-## Clone Repository
-
-Clone project dari GitHub:
-
-```bash
-git clone https://github.com/amarzyo03/peng-smkypekroya.git
-```
-
-Masuk ke folder project:
-
-```bash
-cd peng-smkypekroya
-```
-
 ---
 
 ## Install Dependency
@@ -117,4 +103,14 @@ Jalankan migration:
 
 ```bash
 php artisan migrate
+```
+
+---
+
+## Install Package
+
+Maat Website Excel
+
+```bash
+composer require maatwebsite/excel
 ```
