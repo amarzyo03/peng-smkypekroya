@@ -11,9 +11,17 @@
         <flux:input icon="magnifying-glass" placeholder="Pencarian" size="sm" wire:model.live.debounce.300ms="search" class="w-full" />
 
         {{-- Export Button --}}
-        <flux:button variant="primary" color="red" size="sm" wire:click="Export">
-            Export
-        </flux:button>
+        <flux:dropdown>
+            <flux:button variant="primary" color="red" size="sm">Export</flux:button>
+            <flux:menu>
+                <flux:menu.item wire:click="exportExcel" icon="document-text">
+                    Excel (.xlsx)
+                </flux:menu.item>
+                <flux:menu.item icon="document-text">
+                    PDF (.pdf)
+                </flux:menu.item>
+            </flux:menu>
+        </flux:dropdown>
 
         {{-- Import Button --}}
         <flux:modal.trigger name="upload-siswa">

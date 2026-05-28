@@ -8,6 +8,8 @@ use Livewire\WithPagination;
 use Livewire\WithFileUploads;
 use App\Models\Siswa as SiswaModel;
 use Maatwebsite\Excel\Facades\Excel;
+use Maatwebsite\Excel\Concerns\FromCollection;
+use Maatwebsite\Excel\Concerns\WithHeadings;
 
 class Siswa extends Component
 {
@@ -234,6 +236,74 @@ class Siswa extends Component
 
         $this->reset('file');
         $this->dispatch('close-modal');
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Export Excel
+    |--------------------------------------------------------------------------
+    */
+    public function exportExcel()
+    {
+        $siswas = SiswaModel::all();
+
+        $exportData = $siswas->map(function ($siswa) {
+            return [
+                'NIS' => $siswa->nis,
+                'NISN' => $siswa->nisn,
+                'Nama' => $siswa->nama,
+                'No Ujian' => $siswa->no_ujian,
+                'Kompetensi Keahlian' => $siswa->kompetensi_keahlian,
+                'Status' => $siswa->status,
+            ];
+        });
+
+        return Excel::download(
+            new class($exportData) implements FromCollection, WithHeadings {
+
+                protected $data;
+
+                public function __construct($data)
+                {
+                    $this->data = $data;
+                }
+
+                public function collection()
+                {
+                    return collect($this->data);
+                }
+
+                public function headings(): array
+                {
+                    return [
+                        [
+                            'DATA SISWA'
+                        ],
+                        [],
+                        [
+                            'NIS',
+                            'NISN',
+                            'Nama',
+                            'No Ujian',
+                            'Kompetensi Keahlian',
+                            'Status',
+                        ]
+                    ];
+                }
+            },
+
+            'data-siswa.xlsx'
+        );
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Export PDF
+    |--------------------------------------------------------------------------
+    */
+    public function exportPDF()
+    {
+        // Implementasi export PDF menggunakan library seperti Dompdf atau Snappy
     }
 
     /*
