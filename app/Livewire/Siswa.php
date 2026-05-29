@@ -10,6 +10,7 @@ use App\Models\Siswa as SiswaModel;
 use Maatwebsite\Excel\Facades\Excel;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class Siswa extends Component
 {
@@ -303,7 +304,49 @@ class Siswa extends Component
     */
     public function exportPDF()
     {
-        // Implementasi export PDF menggunakan library seperti Dompdf atau Snappy
+        $siswas = SiswaModel::all();
+
+        $html = '<h2 style="text-align:center;">DATA SISWA</h2>
+                    <table width="100%" border="1" cellspacing="0" cellpadding="5">
+                        <thead>
+                            <tr>
+                                <th>No</th>
+                                <th>NIS</th>
+                                <th>NISN</th>
+                                <th>Nama</th>
+                                <th>No Ujian</th>
+                                <th>Kompetensi Keahlian</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                ';
+
+        foreach ($siswas as $index => $siswa) {
+
+            $html .= '
+                        <tr>
+                            <td>' . ($index + 1) . '</td>
+                            <td>' . $siswa->nis . '</td>
+                            <td>' . $siswa->nisn . '</td>
+                            <td>' . $siswa->nama . '</td>
+                            <td>' . $siswa->no_ujian . '</td>
+                            <td>' . $siswa->kompetensi_keahlian . '</td>
+                            <td>' . $siswa->status . '</td>
+                        </tr>
+                    ';
+        }
+
+        $html .= '</tbody>
+                </table>
+                ';
+
+        $pdf = Pdf::loadHTML($html)->setPaper('a4', 'landscape');
+
+        return response()->streamDownload(
+            fn() => print($pdf->output()),
+            'data-siswa.pdf'
+        );
     }
 
     /*
