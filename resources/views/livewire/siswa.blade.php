@@ -5,15 +5,24 @@
     <flux:separator variant="subtle" class="my-6" />
 
     {{-- Control --}}
-    <div class="flex w-full items-center justify-end gap-1 md:w-auto mb-2">
+    <div class="flex w-full items-center justify-start sm:justify-center gap-1 mb-2">
 
-        {{-- Search --}}
-        <flux:input icon="magnifying-glass" placeholder="Pencarian" size="sm" wire:model.live.debounce.300ms="search"
-            class="w-full" />
+        {{-- Download Button --}}
+        <flux:dropdown>
+            <flux:button variant="primary" color="red" size="sm">Download SK</flux:button>
+            <flux:menu>
+                <flux:menu.item icon="document-text">
+                    Download SK (.pdf)
+                </flux:menu.item>
+                <flux:menu.item icon="document-text">
+                    Upload Template SK (.docx)
+                </flux:menu.item>
+            </flux:menu>
+        </flux:dropdown>
 
         {{-- Export Button --}}
         <flux:dropdown>
-            <flux:button variant="primary" color="red" size="sm">Export</flux:button>
+            <flux:button variant="primary" color="rose" size="sm">Export</flux:button>
             <flux:menu>
                 <flux:menu.item wire:click="exportExcel" icon="document-text">
                     Excel (.xlsx)
@@ -39,6 +48,10 @@
         </flux:modal.trigger>
 
     </div>
+
+    {{-- Search --}}
+    <flux:input icon="magnifying-glass" placeholder="Pencarian" size="sm"
+        wire:model.live.debounce.300ms="search" />
 
     {{-- Separator --}}
     <flux:separator variant="subtle" class="mt-6" />
@@ -80,6 +93,9 @@
                         <flux:dropdown position="bottom" align="end">
                             <flux:button variant="ghost" size="sm" icon="ellipsis-horizontal" inset="top bottom" />
                             <flux:menu>
+                                <flux:menu.item icon="document-text">
+                                    Download SK
+                                </flux:menu.item>
                                 <flux:modal.trigger name="siswa-modal">
                                     <flux:menu.item icon="pencil" wire:click="edit({{ $row->id }})">
                                         Edit
@@ -219,7 +235,7 @@
                 </flux:text>
                 {{-- download template --}}
                 <flux:button variant="primary" color="emerald" size="sm" class="mt-3 w-full"
-                    wire:click="downloadTemplate">
+                    wire:click="downloadTemplateDataSiswa">
                     Download template
                 </flux:button>
             </div>

@@ -175,15 +175,16 @@ class Siswa extends Component
 
     /*
     |--------------------------------------------------------------------------
-    | Download Template
+    | Download Template data siswa
     |--------------------------------------------------------------------------
     */
-    public function downloadTemplate()
+    public function downloadTemplateDataSiswa()
     {
         return response()->download(
             public_path('templates/template-siswa.xlsx')
         );
     }
+
 
     /*
     |--------------------------------------------------------------------------
