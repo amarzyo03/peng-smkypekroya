@@ -8,17 +8,30 @@
     <div class="flex w-full items-center justify-start sm:justify-center gap-1 mb-2">
 
         {{-- Download Button --}}
-        <flux:dropdown>
+        {{-- <flux:dropdown>
             <flux:button variant="primary" color="red" size="sm">Download SK</flux:button>
             <flux:menu>
-                <flux:menu.item icon="document-text">
-                    Download SK (.pdf)
+                <flux:menu.item icon="document" wire:click="downloadSKPDF" wire:loading.attr="disabled" wire:target="downloadSKPDF">
+                    <div class="flex items-center gap-2">
+
+                        <span wire:loading.remove wire:target="downloadSKPDF">
+                            Download SK PDF
+                        </span>
+
+                        <span wire:loading wire:target="downloadSKPDF" class="flex items-center gap-2">
+                            <flux:icon.arrow-path class="size-4 animate-spin" />
+                            Converting...
+                        </span>
+
+                    </div>
                 </flux:menu.item>
-                <flux:menu.item icon="document-text">
-                    Upload Template SK (.docx)
-                </flux:menu.item>
+                <flux:modal.trigger name="upload-template-sk">
+                    <flux:menu.item icon="document-text">
+                        Upload template SK
+                    </flux:menu.item>
+                </flux:modal.trigger>
             </flux:menu>
-        </flux:dropdown>
+        </flux:dropdown> --}}
 
         {{-- Export Button --}}
         <flux:dropdown>
@@ -50,8 +63,7 @@
     </div>
 
     {{-- Search --}}
-    <flux:input icon="magnifying-glass" placeholder="Pencarian" size="sm"
-        wire:model.live.debounce.300ms="search" />
+    <flux:input icon="magnifying-glass" placeholder="Pencarian" size="sm" wire:model.live.debounce.300ms="search" />
 
     {{-- Separator --}}
     <flux:separator variant="subtle" class="mt-6" />
@@ -60,18 +72,13 @@
     <flux:table :paginate="$this->siswas">
         <flux:table.columns>
             <flux:table.column>#</flux:table.column>
-            <flux:table.column sortable :sorted="$sortBy === 'nis'" :direction="$sortDirection"
-                wire:click="sort('nis')">NIS</flux:table.column>
-            <flux:table.column sortable :sorted="$sortBy === 'nisn'" :direction="$sortDirection"
-                wire:click="sort('nisn')">NISN</flux:table.column>
-            <flux:table.column sortable :sorted="$sortBy === 'nama'" :direction="$sortDirection"
-                wire:click="sort('nama')">Nama</flux:table.column>
-            <flux:table.column sortable :sorted="$sortBy === 'no_ujian'" :direction="$sortDirection"
-                wire:click="sort('no_ujian')">No Ujian</flux:table.column>
-            <flux:table.column sortable :sorted="$sortBy === 'kompetensi_keahlian'" :direction="$sortDirection"
-                wire:click="sort('kompetensi_keahlian')">Kompetensi Keahlian</flux:table.column>
-            <flux:table.column sortable :sorted="$sortBy === 'status'" :direction="$sortDirection"
-                wire:click="sort('status')">Status</flux:table.column>
+            <flux:table.column sortable :sorted="$sortBy === 'nis'" :direction="$sortDirection" wire:click="sort('nis')">NIS</flux:table.column>
+            <flux:table.column sortable :sorted="$sortBy === 'nisn'" :direction="$sortDirection" wire:click="sort('nisn')">NISN</flux:table.column>
+            <flux:table.column sortable :sorted="$sortBy === 'nama'" :direction="$sortDirection" wire:click="sort('nama')">Nama</flux:table.column>
+            <flux:table.column sortable :sorted="$sortBy === 'no_ujian'" :direction="$sortDirection" wire:click="sort('no_ujian')">No Ujian</flux:table.column>
+            <flux:table.column sortable :sorted="$sortBy === 'kompetensi_keahlian'" :direction="$sortDirection" wire:click="sort('kompetensi_keahlian')">Kompetensi</flux:table.column>
+            <flux:table.column sortable :sorted="$sortBy === 'status'" :direction="$sortDirection" wire:click="sort('status')">Status</flux:table.column>
+            <flux:table.column sortable :sorted="$sortBy === 'SK PDF'" :direction="$sortDirection" wire:click="sort('SK PDF')">SK PDF</flux:table.column>
             <flux:table.column></flux:table.column>
         </flux:table.columns>
 
@@ -85,25 +92,36 @@
                     <flux:table.cell>{{ $row->no_ujian }}</flux:table.cell>
                     <flux:table.cell>{{ strtoupper($row->kompetensi_keahlian) }}</flux:table.cell>
                     <flux:table.cell>
-                        <flux:badge variant="solid" color="{{ $row->status == 'lulus' ? 'green' : 'red' }}"
-                            size="sm" inset="top bottom">{{ strtoupper($row->status) }}
+                        <flux:badge variant="solid" color="{{ $row->status == 'lulus' ? 'green' : 'red' }}" size="sm" inset="top bottom">{{ strtoupper($row->status) }}
                         </flux:badge>
+                    </flux:table.cell>
+                    <flux:table.cell>
+                        <flux:tooltip content="Download SK PDF" position="top">
+                            <flux:button size="sm" variant="primary" color="red" icon="arrow-down-tray" wire:click="downloadSKPDF({{ $row->id }})" wire:loading.attr="disabled" wire:target="downloadSKPDF({{ $row->id }})">
+                                <div class="flex items-center gap-2">
+                                    <span wire:loading.remove wire:target="downloadSKPDF({{ $row->id }})">
+                                        SK
+                                    </span>
+                                    <span wire:loading wire:target="downloadSKPDF({{ $row->id }})" class="flex items-center gap-2">
+                                        <flux:icon.arrow-path class="size-4 animate-spin" />
+                                        Converting...
+                                    </span>
+                                </div>
+                            </flux:button>
+                        </flux:tooltip>
                     </flux:table.cell>
                     <flux:table.cell>
                         <flux:dropdown position="bottom" align="end">
                             <flux:button variant="ghost" size="sm" icon="ellipsis-horizontal" inset="top bottom" />
                             <flux:menu>
-                                <flux:menu.item icon="document-text">
-                                    Download SK
-                                </flux:menu.item>
+
                                 <flux:modal.trigger name="siswa-modal">
                                     <flux:menu.item icon="pencil" wire:click="edit({{ $row->id }})">
                                         Edit
                                     </flux:menu.item>
                                 </flux:modal.trigger>
                                 <flux:modal.trigger name="delete-siswa">
-                                    <flux:menu.item icon="trash" variant="danger"
-                                        wire:click="confirmDelete({{ $row->id }})">
+                                    <flux:menu.item icon="trash" variant="danger" wire:click="confirmDelete({{ $row->id }})">
                                         Delete
                                     </flux:menu.item>
                                 </flux:modal.trigger>
@@ -122,7 +140,7 @@
     </flux:table>
 
     {{-- Modal add and edit --}}
-    <flux:modal name="siswa-modal" class="md:w-96" x-on:close-modal.window="$flux.modal('siswa-modal').close()">
+    <flux:modal name="siswa-modal" class="min-w-[22rem]" x-on:close-modal.window="$flux.modal('siswa-modal').close()">
         <div class="space-y-6">
 
             {{-- Heading modal --}}
@@ -162,8 +180,7 @@
                         Cancel
                     </flux:button>
                 </flux:modal.close>
-                <flux:button wire:click="save" wire:loading.attr="disabled" variant="primary" color="blue"
-                    size="sm" class="w-full">
+                <flux:button wire:click="save" wire:loading.attr="disabled" variant="primary" color="blue" size="sm" class="w-full">
                     <span wire:loading.remove wire:target="save">
                         {{ $editId ? 'Update' : 'Save' }}
                     </span>
@@ -177,8 +194,7 @@
     </flux:modal>
 
     {{-- Modal delete --}}
-    <flux:modal name="delete-siswa" class="min-w-[22rem]"
-        x-on:close-modal.window="$flux.modal('delete-siswa').close()">
+    <flux:modal name="delete-siswa" class="min-w-[22rem]" x-on:close-modal.window="$flux.modal('delete-siswa').close()">
         <div class="space-y-6">
 
             {{-- Modal heading --}}
@@ -218,9 +234,8 @@
         </div>
     </flux:modal>
 
-    {{-- Modal upload --}}
-    <flux:modal name="upload-siswa" class="min-w-[22rem]"
-        x-on:close-modal.window="$flux.modal('upload-siswa').close()">
+    {{-- Modal upload data siswa --}}
+    <flux:modal name="upload-siswa" class="min-w-[22rem]" x-on:close-modal.window="$flux.modal('upload-siswa').close()">
         <div class="space-y-6">
 
             {{-- Modal heading --}}
@@ -234,8 +249,7 @@
                     Pastikan format file sesuai dengan template yang disediakan.
                 </flux:text>
                 {{-- download template --}}
-                <flux:button variant="primary" color="emerald" size="sm" class="mt-3 w-full"
-                    wire:click="downloadTemplateDataSiswa">
+                <flux:button variant="primary" color="emerald" size="sm" class="mt-3 w-full" wire:click="downloadTemplateSiswa">
                     Download template
                 </flux:button>
             </div>
@@ -251,12 +265,50 @@
                         Cancel
                     </flux:button>
                 </flux:modal.close>
-                <flux:button wire:click="import" wire:loading.attr="disabled" variant="primary" color="emerald"
-                    size="sm" class="w-full">
+                <flux:button wire:click="import" wire:loading.attr="disabled" variant="primary" color="emerald" size="sm" class="w-full">
                     <span wire:loading.remove wire:target="import">
                         Upload
                     </span>
                     <span wire:loading wire:target="import">
+                        Uploading...
+                    </span>
+                </flux:button>
+            </div>
+        </div>
+    </flux:modal>
+
+    {{-- Modal upload template SK --}}
+    <flux:modal name="upload-template-sk" class="min-w-[22rem]" x-on:close-modal.window="$flux.modal('upload-template-sk').close()">
+        <div class="space-y-6">
+
+            {{-- Modal heading --}}
+            <div>
+                <flux:heading size="lg">
+                    Upload template SK
+                </flux:heading>
+                <flux:text class="mt-2">
+                    Pilih file Word (.docx) yang akan dijadikan template untuk generate SK siswa.
+                    <br>
+                    Pastikan file memiliki placeholder yang sesuai dengan format yang dibutuhkan.
+                </flux:text>
+            </div>
+
+            {{-- Form input --}}
+            <flux:input type="file" label="Pilih file Word" size="sm" wire:model="template_sk" accept=".docx" />
+
+            {{-- Control input --}}
+            <div class="flex items-center gap-2">
+                <flux:spacer />
+                <flux:modal.close>
+                    <flux:button variant="ghost" size="sm">
+                        Cancel
+                    </flux:button>
+                </flux:modal.close>
+                <flux:button wire:click="uploadTemplateSK" wire:loading.attr="disabled" wire:target="template_sk,uploadTemplateSK" variant="primary" color="emerald" size="sm" class="w-full">
+                    <span wire:loading.remove wire:target="template_sk,uploadTemplateSK">
+                        Upload
+                    </span>
+                    <span wire:loading wire:target="template_sk,uploadTemplateSK">
                         Uploading...
                     </span>
                 </flux:button>

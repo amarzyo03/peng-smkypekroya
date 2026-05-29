@@ -11,12 +11,16 @@ use Maatwebsite\Excel\Facades\Excel;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Barryvdh\DomPDF\Facade\Pdf;
+use PhpOffice\PhpWord\TemplateProcessor;
+use PhpOffice\PhpWord\IOFactory;
+use PhpOffice\PhpWord\Settings;
 
 class Siswa extends Component
 {
     // Traits for pagination and file uploads
     use WithPagination;
     use WithFileUploads;
+
 
     // Public properties for managing state
     public $editId = null;
@@ -33,6 +37,7 @@ class Siswa extends Component
     public $kompetensi_keahlian;
     public $status;
     public $file;
+    public $template_sk;
 
 
     /*
@@ -126,7 +131,6 @@ class Siswa extends Component
     public function delete()
     {
         SiswaModel::findOrFail($this->deleteId)->delete();
-
         Flux::toast(
             variant: 'success',
             text: "Data siswa berhasil dihapus."
@@ -138,57 +142,234 @@ class Siswa extends Component
 
     /*
     |--------------------------------------------------------------------------
-    | Reset pagination saat search
+    | Download Template Siswa
     |--------------------------------------------------------------------------
     */
-    public function updatedSearch()
+    public function downloadTemplateSiswa()
     {
-        $this->resetPage();
-    }
+        $path = public_path('templates/template-siswa.xlsx');
 
-    /*
-    |--------------------------------------------------------------------------
-    | Siswas Data
-    |--------------------------------------------------------------------------
-    */
-    public function getSiswasProperty()
-    {
-        return SiswaModel::where('nama', 'like', '%' . $this->search . '%')
-            ->orderBy($this->sortBy, $this->sortDirection)
-            ->paginate(10);
-    }
+        // Cek file template
+        if (!file_exists($path)) {
 
-    /*
-    |--------------------------------------------------------------------------
-    | Sort
-    |--------------------------------------------------------------------------
-    */
-    public function sort($field)
-    {
-        if ($this->sortBy === $field) {
-            $this->sortDirection = $this->sortDirection === 'asc' ? 'desc' : 'asc';
-        } else {
-            $this->sortBy = $field;
-            $this->sortDirection = 'asc';
+            Flux::toast(
+                heading: 'Peringatan',
+                text: 'Template siswa belum tersedia.',
+                variant: 'warning',
+            );
+
+            return;
         }
-    }
 
-    /*
-    |--------------------------------------------------------------------------
-    | Download Template data siswa
-    |--------------------------------------------------------------------------
-    */
-    public function downloadTemplateDataSiswa()
-    {
         return response()->download(
-            public_path('templates/template-siswa.xlsx')
+            $path,
+            'template-siswa.xlsx'
         );
     }
 
+    /*
+    |--------------------------------------------------------------------------
+    | Download SK Word (per siswa atau semua dalam ZIP)
+    |--------------------------------------------------------------------------
+    */
+    public function downloadSK($id = null)
+    {
+        // Membuat folder temp jika belum ada
+        if (!file_exists(public_path('temp'))) {
+            mkdir(public_path('temp'), 0777, true);
+        }
+
+        // Cek template SK
+        if (!file_exists(public_path('templates/template-sk.docx'))) {
+            Flux::toast(
+                heading: 'Peringatan',
+                text: 'Template SK belum diupload, silakan upload template terlebih dahulu.',
+                variant: 'warning',
+            );
+            return;
+        }
+
+        // Download SK per siswa
+        if ($id) {
+            $siswa    = SiswaModel::findOrFail($id);
+            $template = new TemplateProcessor(
+                public_path('templates/template-sk.docx')
+            );
+
+            $template->setValue('nis', $siswa->nis);
+            $template->setValue('nisn', $siswa->nisn);
+            $template->setValue('nama', strtoupper($siswa->nama));
+            $template->setValue('no_peserta', $siswa->no_ujian);
+            $template->setValue('kompetensi_keahlian', strtoupper($siswa->kompetensi_keahlian));
+            $template->setValue('status', strtoupper($siswa->status));
+
+            $filename = 'SK-' . $siswa->nama . '.docx';
+            $path     = public_path('temp/' . $filename);
+
+            $template->saveAs($path);
+            return response()->download($path)->deleteFileAfterSend(true);
+        }
+
+        // Download semua SK dalam ZIP
+        $siswas      = SiswaModel::all();
+        $zipFileName = 'SEMUA-SK.zip';
+        $zipPath     = public_path('temp/' . $zipFileName);
+        $zip         = new \ZipArchive;
+
+        if ($zip->open($zipPath, \ZipArchive::CREATE | \ZipArchive::OVERWRITE) === true) {
+            foreach ($siswas as $siswa) {
+                $template = new TemplateProcessor(
+                    public_path('templates/template-sk.docx')
+                );
+
+                $template->setValue('nis', $siswa->nis);
+                $template->setValue('nisn', $siswa->nisn);
+                $template->setValue('nama', strtoupper($siswa->nama));
+                $template->setValue('no_peserta', $siswa->no_ujian);
+                $template->setValue('kompetensi_keahlian', strtoupper($siswa->kompetensi_keahlian));
+                $template->setValue('status', strtoupper($siswa->status));
+
+                $filename = 'SK-' . $siswa->nama . '.docx';
+                $filePath = public_path('temp/' . $filename);
+
+                $template->saveAs($filePath);
+                $zip->addFile($filePath, $filename);
+            }
+            $zip->close();
+        }
+
+        foreach (glob(public_path('temp/*.docx')) as $file) {
+            unlink($file);
+        }
+        return response()->download($zipPath)->deleteFileAfterSend(true);
+    }
 
     /*
     |--------------------------------------------------------------------------
-    | Import
+    | Download SK PDF (per siswa atau semua dalam ZIP)
+    |--------------------------------------------------------------------------
+    */
+    public function downloadSKPDF($id = null)
+    {
+        if (!file_exists(public_path('templates/template-sk.docx'))) {
+            Flux::toast(
+                heading: 'Peringatan',
+                text: 'Template SK belum diupload.',
+                variant: 'warning',
+            );
+            return;
+        }
+
+        if (!file_exists(public_path('temp'))) {
+            mkdir(public_path('temp'), 0777, true);
+        }
+
+        $siswas  = $id ? SiswaModel::where('id', $id)->get() : SiswaModel::all();
+        $zipPath = public_path('temp/SK_Semua.zip');
+        $zip     = new \ZipArchive;
+
+        if ($zip->open($zipPath, \ZipArchive::CREATE | \ZipArchive::OVERWRITE) === true) {
+            foreach ($siswas as $siswa) {
+                $template = new TemplateProcessor(
+                    public_path('templates/template-sk.docx')
+                );
+
+                $template->setValue('nis', $siswa->nis);
+                $template->setValue('nisn', $siswa->nisn);
+                $template->setValue('nama', strtoupper($siswa->nama));
+                $template->setValue('no_peserta', $siswa->no_ujian);
+                $template->setValue('kompetensi_keahlian', strtoupper($siswa->kompetensi_keahlian));
+                $template->setValue('status', strtoupper($siswa->status));
+
+                $namaFile = 'SK-' . str_replace(' ', '-', strtolower($siswa->nama));
+                $docxPath = public_path("temp/{$namaFile}.docx");
+                $pdfPath  = public_path("temp/{$namaFile}.pdf");
+
+                $template->saveAs($docxPath);
+
+                $command = '"C:\\Program Files\\LibreOffice\\program\\soffice.exe" --headless --convert-to pdf "' . $docxPath . '" --outdir "' . public_path('temp') . '"';
+                exec($command);
+
+                $attempt = 0;
+                while (!file_exists($pdfPath) && $attempt < 10) {
+                    usleep(500000);
+                    $attempt++;
+                }
+
+                if (file_exists($pdfPath)) {
+                    $zip->addFile($pdfPath, basename($pdfPath));
+                }
+
+                if (file_exists($docxPath)) unlink($docxPath);
+            }
+            $zip->close();
+        }
+
+
+        if ($id) {
+            $siswa = SiswaModel::findOrFail($id);
+            Flux::toast(
+                heading: 'Berhasil',
+                text: 'SK ' . $siswa->nama . ' berhasil diunduh.',
+                variant: 'success',
+            );
+
+            $pdfFile = glob(public_path('temp/*.pdf'))[0] ?? null;
+            if ($pdfFile) {
+                return response()->download(
+                    $pdfFile,
+                    'SK_' . str_replace(' ', '-', strtolower($siswa->nama)) . '.pdf'
+                )->deleteFileAfterSend(true);
+            }
+            return;
+        }
+
+        Flux::toast(
+            heading: 'Berhasil',
+            text: 'Semua SK berhasil diunduh.',
+            variant: 'success',
+        );
+
+        return response()->download($zipPath, 'SK_Semua.zip')
+            ->deleteFileAfterSend(true);
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Upload Template SK
+    |--------------------------------------------------------------------------
+    */
+    public function uploadTemplateSK()
+    {
+        $this->validate([
+            'template_sk' => 'required|mimes:docx'
+        ]);
+
+        // Simpan sementara di storage
+        $path = $this->template_sk->storeAs(
+            'temp',
+            'template-sk.docx'
+        );
+
+        // Copy ke public/templates
+        copy(
+            storage_path('app/private/' . $path),
+            public_path('templates/template-sk.docx')
+        );
+
+        Flux::toast(
+            heading: 'Berhasil',
+            text: 'Template SK berhasil diupload.',
+            variant: 'success',
+        );
+
+        $this->reset('template_sk');
+        $this->dispatch('close-modal');
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Import data siswa dari Excel
     |--------------------------------------------------------------------------
     */
     public function import()
@@ -198,18 +379,15 @@ class Siswa extends Component
         ]);
 
         $rows = Excel::toArray([], $this->file);
-
         if (empty($rows[0])) {
             Flux::toast(
                 variant: 'danger',
                 text: 'File Excel kosong.'
             );
-
             return;
         }
 
         foreach ($rows[0] as $index => $row) {
-
             // Skip header
             if ($index == 0) {
                 continue;
@@ -306,8 +484,7 @@ class Siswa extends Component
     public function exportPDF()
     {
         $siswas = SiswaModel::all();
-
-        $html = '<h2 style="text-align:center;">DATA SISWA</h2>
+        $html   = '<h2 style="text-align:center;">DATA SISWA</h2>
                     <table width="100%" border="1" cellspacing="0" cellpadding="5">
                         <thead>
                             <tr>
@@ -320,11 +497,8 @@ class Siswa extends Component
                                 <th>Status</th>
                             </tr>
                         </thead>
-                        <tbody>
-                ';
-
+                        <tbody>';
         foreach ($siswas as $index => $siswa) {
-
             $html .= '
                         <tr>
                             <td>' . ($index + 1) . '</td>
@@ -334,20 +508,54 @@ class Siswa extends Component
                             <td>' . $siswa->no_ujian . '</td>
                             <td>' . $siswa->kompetensi_keahlian . '</td>
                             <td>' . $siswa->status . '</td>
-                        </tr>
-                    ';
+                        </tr>';
         }
 
         $html .= '</tbody>
-                </table>
-                ';
+                </table>';
 
         $pdf = Pdf::loadHTML($html)->setPaper('a4', 'landscape');
-
         return response()->streamDownload(
             fn() => print($pdf->output()),
             'data-siswa.pdf'
         );
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Reset pagination saat search
+    |--------------------------------------------------------------------------
+    */
+    public function updatedSearch()
+    {
+        $this->resetPage();
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Siswas Data
+    |--------------------------------------------------------------------------
+    */
+    public function getSiswasProperty()
+    {
+        return SiswaModel::where('nama', 'like', '%' . $this->search . '%')
+            ->orderBy($this->sortBy, $this->sortDirection)
+            ->paginate(10);
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Sort
+    |--------------------------------------------------------------------------
+    */
+    public function sort($field)
+    {
+        if ($this->sortBy === $field) {
+            $this->sortDirection = $this->sortDirection === 'asc' ? 'desc' : 'asc';
+        } else {
+            $this->sortBy = $field;
+            $this->sortDirection = 'asc';
+        }
     }
 
     /*

@@ -47,14 +47,14 @@ The goal of this project is to provide a scalable, clean, and developer-friendly
 
 ## Tech Stack
 
-| Technology | Description |
-|------------|-------------|
-| Laravel 13 | Backend Framework |
-| TailwindCSS | Styling Framework |
-| FluxUI | UI Component Library |
-| Livewire | Dynamic Interfaces |
-| Vite | Frontend Build Tool |
-| MySQL / PostgreSQL | Database |
+| Technology         | Description          |
+| ------------------ | -------------------- |
+| Laravel 13         | Backend Framework    |
+| TailwindCSS        | Styling Framework    |
+| FluxUI             | UI Component Library |
+| Livewire           | Dynamic Interfaces   |
+| Vite               | Frontend Build Tool  |
+| MySQL / PostgreSQL | Database             |
 
 ---
 
@@ -75,6 +75,7 @@ Install dependency JavaScript:
 ```bash
 npm install
 ```
+
 ```bash
 npm run build
 ```
@@ -113,4 +114,10 @@ Maat Website Excel
 
 ```bash
 composer require maatwebsite/excel
+```
+
+PHP Office Word
+
+```bash
+composer require phpoffice/phpword
 ```
