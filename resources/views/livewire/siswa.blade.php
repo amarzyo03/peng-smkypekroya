@@ -5,33 +5,7 @@
     <flux:separator variant="subtle" class="my-6" />
 
     {{-- Control --}}
-    <div class="flex w-full items-center justify-start sm:justify-center gap-1 mb-2">
-
-        {{-- Download Button --}}
-        {{-- <flux:dropdown>
-            <flux:button variant="primary" color="red" size="sm">Download SK</flux:button>
-            <flux:menu>
-                <flux:menu.item icon="document" wire:click="downloadSKPDF" wire:loading.attr="disabled" wire:target="downloadSKPDF">
-                    <div class="flex items-center gap-2">
-
-                        <span wire:loading.remove wire:target="downloadSKPDF">
-                            Download SK PDF
-                        </span>
-
-                        <span wire:loading wire:target="downloadSKPDF" class="flex items-center gap-2">
-                            <flux:icon.arrow-path class="size-4 animate-spin" />
-                            Converting...
-                        </span>
-
-                    </div>
-                </flux:menu.item>
-                <flux:modal.trigger name="upload-template-sk">
-                    <flux:menu.item icon="document-text">
-                        Upload template SK
-                    </flux:menu.item>
-                </flux:modal.trigger>
-            </flux:menu>
-        </flux:dropdown> --}}
+    <div class="flex w-full items-center gap-1 mb-2">
 
         {{-- Export Button --}}
         <flux:dropdown>
@@ -46,15 +20,22 @@
             </flux:menu>
         </flux:dropdown>
 
+        {{-- Upload SK Button --}}
+        <flux:modal.trigger name="modal-upload-sk-template">
+            <flux:button variant="primary" color="red" size="sm">
+                Upload SK
+            </flux:button>
+        </flux:modal.trigger>
+
         {{-- Import Button --}}
-        <flux:modal.trigger name="upload-siswa">
+        <flux:modal.trigger name="modal-upload-data-siswa">
             <flux:button variant="primary" color="emerald" size="sm">
                 Import
             </flux:button>
         </flux:modal.trigger>
 
         {{-- Add Button --}}
-        <flux:modal.trigger name="siswa-modal">
+        <flux:modal.trigger name="modal-tambah-siswa">
             <flux:button variant="primary" color="blue" size="sm" wire:click="create">
                 Tambah
             </flux:button>
@@ -63,7 +44,8 @@
     </div>
 
     {{-- Search --}}
-    <flux:input icon="magnifying-glass" placeholder="Pencarian" size="sm" wire:model.live.debounce.300ms="search" />
+    <flux:input icon="magnifying-glass" placeholder="Pencarian" size="sm"
+        wire:model.live.debounce.300ms="search" />
 
     {{-- Separator --}}
     <flux:separator variant="subtle" class="mt-6" />
@@ -72,13 +54,20 @@
     <flux:table :paginate="$this->siswas">
         <flux:table.columns>
             <flux:table.column>#</flux:table.column>
-            <flux:table.column sortable :sorted="$sortBy === 'nis'" :direction="$sortDirection" wire:click="sort('nis')">NIS</flux:table.column>
-            <flux:table.column sortable :sorted="$sortBy === 'nisn'" :direction="$sortDirection" wire:click="sort('nisn')">NISN</flux:table.column>
-            <flux:table.column sortable :sorted="$sortBy === 'nama'" :direction="$sortDirection" wire:click="sort('nama')">Nama</flux:table.column>
-            <flux:table.column sortable :sorted="$sortBy === 'no_ujian'" :direction="$sortDirection" wire:click="sort('no_ujian')">No Ujian</flux:table.column>
-            <flux:table.column sortable :sorted="$sortBy === 'kompetensi_keahlian'" :direction="$sortDirection" wire:click="sort('kompetensi_keahlian')">Kompetensi</flux:table.column>
-            <flux:table.column sortable :sorted="$sortBy === 'status'" :direction="$sortDirection" wire:click="sort('status')">Status</flux:table.column>
-            <flux:table.column sortable :sorted="$sortBy === 'SK PDF'" :direction="$sortDirection" wire:click="sort('SK PDF')">SK PDF</flux:table.column>
+            <flux:table.column sortable :sorted="$sortBy === 'nis'" :direction="$sortDirection"
+                wire:click="sort('nis')">NIS</flux:table.column>
+            <flux:table.column sortable :sorted="$sortBy === 'nisn'" :direction="$sortDirection"
+                wire:click="sort('nisn')">NISN</flux:table.column>
+            <flux:table.column sortable :sorted="$sortBy === 'nama'" :direction="$sortDirection"
+                wire:click="sort('nama')">Nama</flux:table.column>
+            <flux:table.column sortable :sorted="$sortBy === 'no_ujian'" :direction="$sortDirection"
+                wire:click="sort('no_ujian')">No Ujian</flux:table.column>
+            <flux:table.column sortable :sorted="$sortBy === 'kompetensi_keahlian'" :direction="$sortDirection"
+                wire:click="sort('kompetensi_keahlian')">Kompetensi</flux:table.column>
+            <flux:table.column sortable :sorted="$sortBy === 'status'" :direction="$sortDirection"
+                wire:click="sort('status')">Status</flux:table.column>
+            <flux:table.column sortable :sorted="$sortBy === 'SK PDF'" :direction="$sortDirection"
+                wire:click="sort('SK PDF')">SK PDF</flux:table.column>
             <flux:table.column></flux:table.column>
         </flux:table.columns>
 
@@ -92,17 +81,21 @@
                     <flux:table.cell>{{ $row->no_ujian }}</flux:table.cell>
                     <flux:table.cell>{{ strtoupper($row->kompetensi_keahlian) }}</flux:table.cell>
                     <flux:table.cell>
-                        <flux:badge variant="solid" color="{{ $row->status == 'lulus' ? 'green' : 'red' }}" size="sm" inset="top bottom">{{ strtoupper($row->status) }}
+                        <flux:badge variant="solid" color="{{ $row->status == 'lulus' ? 'green' : 'red' }}"
+                            size="sm" inset="top bottom">{{ strtoupper($row->status) }}
                         </flux:badge>
                     </flux:table.cell>
                     <flux:table.cell>
                         <flux:tooltip content="Download SK PDF" position="top">
-                            <flux:button size="sm" variant="primary" color="red" icon="arrow-down-tray" wire:click="downloadSKPDF({{ $row->id }})" wire:loading.attr="disabled" wire:target="downloadSKPDF({{ $row->id }})">
+                            <flux:button size="sm" variant="primary" color="red" icon="arrow-down-tray"
+                                wire:click="downloadSKPDF({{ $row->id }})" wire:loading.attr="disabled"
+                                wire:target="downloadSKPDF({{ $row->id }})">
                                 <div class="flex items-center gap-2">
                                     <span wire:loading.remove wire:target="downloadSKPDF({{ $row->id }})">
                                         SK
                                     </span>
-                                    <span wire:loading wire:target="downloadSKPDF({{ $row->id }})" class="flex items-center gap-2">
+                                    <span wire:loading wire:target="downloadSKPDF({{ $row->id }})"
+                                        class="flex items-center gap-2">
                                         <flux:icon.arrow-path class="size-4 animate-spin" />
                                         Converting...
                                     </span>
@@ -121,7 +114,8 @@
                                     </flux:menu.item>
                                 </flux:modal.trigger>
                                 <flux:modal.trigger name="delete-siswa">
-                                    <flux:menu.item icon="trash" variant="danger" wire:click="confirmDelete({{ $row->id }})">
+                                    <flux:menu.item icon="trash" variant="danger"
+                                        wire:click="confirmDelete({{ $row->id }})">
                                         Delete
                                     </flux:menu.item>
                                 </flux:modal.trigger>
@@ -140,7 +134,8 @@
     </flux:table>
 
     {{-- Modal add and edit --}}
-    <flux:modal name="siswa-modal" class="min-w-[22rem]" x-on:close-modal.window="$flux.modal('siswa-modal').close()">
+    <flux:modal name="modal-tambah-siswa" class="min-w-[22rem]"
+        x-on:close-modal.window="$flux.modal('modal-tambah-siswa').close()">
         <div class="space-y-6">
 
             {{-- Heading modal --}}
@@ -180,7 +175,8 @@
                         Cancel
                     </flux:button>
                 </flux:modal.close>
-                <flux:button wire:click="save" wire:loading.attr="disabled" variant="primary" color="blue" size="sm" class="w-full">
+                <flux:button wire:click="save" wire:loading.attr="disabled" variant="primary" color="blue"
+                    size="sm" class="w-full">
                     <span wire:loading.remove wire:target="save">
                         {{ $editId ? 'Update' : 'Save' }}
                     </span>
@@ -194,7 +190,8 @@
     </flux:modal>
 
     {{-- Modal delete --}}
-    <flux:modal name="delete-siswa" class="min-w-[22rem]" x-on:close-modal.window="$flux.modal('delete-siswa').close()">
+    <flux:modal name="delete-siswa" class="min-w-[22rem]"
+        x-on:close-modal.window="$flux.modal('delete-siswa').close()">
         <div class="space-y-6">
 
             {{-- Modal heading --}}
@@ -235,7 +232,8 @@
     </flux:modal>
 
     {{-- Modal upload data siswa --}}
-    <flux:modal name="upload-siswa" class="min-w-[22rem]" x-on:close-modal.window="$flux.modal('upload-siswa').close()">
+    <flux:modal name="modal-upload-data-siswa" class="min-w-[22rem]"
+        x-on:close-modal.window="$flux.modal('modal-upload-data-siswa').close()">
         <div class="space-y-6">
 
             {{-- Modal heading --}}
@@ -249,7 +247,8 @@
                     Pastikan format file sesuai dengan template yang disediakan.
                 </flux:text>
                 {{-- download template --}}
-                <flux:button variant="primary" color="emerald" size="sm" class="mt-3 w-full" wire:click="downloadTemplateSiswa">
+                <flux:button variant="primary" color="emerald" size="sm" class="mt-3 w-full"
+                    wire:click="downloadTemplateSiswa">
                     Download template
                 </flux:button>
             </div>
@@ -265,7 +264,8 @@
                         Cancel
                     </flux:button>
                 </flux:modal.close>
-                <flux:button wire:click="import" wire:loading.attr="disabled" variant="primary" color="emerald" size="sm" class="w-full">
+                <flux:button wire:click="import" wire:loading.attr="disabled" variant="primary" color="emerald"
+                    size="sm" class="w-full">
                     <span wire:loading.remove wire:target="import">
                         Upload
                     </span>
@@ -278,7 +278,8 @@
     </flux:modal>
 
     {{-- Modal upload template SK --}}
-    <flux:modal name="upload-template-sk" class="min-w-[22rem]" x-on:close-modal.window="$flux.modal('upload-template-sk').close()">
+    <flux:modal name="modal-upload-sk-template" class="min-w-[22rem]"
+        x-on:close-modal.window="$flux.modal('modal-upload-sk-template').close()">
         <div class="space-y-6">
 
             {{-- Modal heading --}}
@@ -294,7 +295,8 @@
             </div>
 
             {{-- Form input --}}
-            <flux:input type="file" label="Pilih file Word" size="sm" wire:model="template_sk" accept=".docx" />
+            <flux:input type="file" label="Pilih file Word" size="sm" wire:model="template_sk"
+                accept=".docx" />
 
             {{-- Control input --}}
             <div class="flex items-center gap-2">
@@ -304,7 +306,9 @@
                         Cancel
                     </flux:button>
                 </flux:modal.close>
-                <flux:button wire:click="uploadTemplateSK" wire:loading.attr="disabled" wire:target="template_sk,uploadTemplateSK" variant="primary" color="emerald" size="sm" class="w-full">
+                <flux:button wire:click="uploadTemplateSK" wire:loading.attr="disabled"
+                    wire:target="template_sk,uploadTemplateSK" variant="primary" color="emerald" size="sm"
+                    class="w-full">
                     <span wire:loading.remove wire:target="template_sk,uploadTemplateSK">
                         Upload
                     </span>
