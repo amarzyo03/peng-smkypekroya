@@ -19,10 +19,11 @@
                     wire:navigate>
                     {{ __('Dashboard') }}
                 </flux:sidebar.item>
-                <flux:sidebar.item icon="users" :href="route('siswa')" :current="request()->routeIs('siswa')"
-                    wire:navigate>
-                    {{ __('Siswa') }}
-                </flux:sidebar.item>
+            </flux:sidebar.group>
+
+            <flux:sidebar.group expandable heading="Pengumuman" class="grid">
+                <flux:sidebar.item icon="users" :href="route('siswa')">{{ __('Daftar Siswa') }}</flux:sidebar.item>
+                <flux:sidebar.item icon="arrow-up-tray">{{ __('Upload SK') }}</flux:sidebar.item>
             </flux:sidebar.group>
         </flux:sidebar.nav>
 
