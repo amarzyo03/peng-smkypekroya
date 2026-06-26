@@ -20,20 +20,6 @@
             </flux:menu>
         </flux:dropdown>
 
-        {{-- Upload SK Button --}}
-        <flux:modal.trigger name="modal-upload-sk-template">
-            <flux:button variant="primary" color="red" size="sm">
-                Upload SK
-            </flux:button>
-        </flux:modal.trigger>
-
-        {{-- Import Button --}}
-        <flux:modal.trigger name="modal-upload-data-siswa">
-            <flux:button variant="primary" color="emerald" size="sm">
-                Import
-            </flux:button>
-        </flux:modal.trigger>
-
         {{-- Add Button --}}
         <flux:modal.trigger name="modal-tambah-siswa">
             <flux:button variant="primary" color="blue" size="sm" wire:click="create">
@@ -46,7 +32,7 @@
     {{-- Search --}}
     <flux:input icon="magnifying-glass" placeholder="Pencarian" size="sm"
         wire:model.live.debounce.300ms="search" />
-
+ 
     {{-- Separator --}}
     <flux:separator variant="subtle" class="mt-6" />
 
@@ -227,95 +213,6 @@
                     </span>
                 </flux:button>
 
-            </div>
-        </div>
-    </flux:modal>
-
-    {{-- Modal upload data siswa --}}
-    <flux:modal name="modal-upload-data-siswa" class="min-w-[22rem]"
-        x-on:close-modal.window="$flux.modal('modal-upload-data-siswa').close()">
-        <div class="space-y-6">
-
-            {{-- Modal heading --}}
-            <div>
-                <flux:heading size="lg">
-                    Upload data siswa
-                </flux:heading>
-                <flux:text class="mt-2">
-                    Pilih file Excel (.xlsx) yang berisi data siswa untuk diunggah.
-                    <br>
-                    Pastikan format file sesuai dengan template yang disediakan.
-                </flux:text>
-                {{-- download template --}}
-                <flux:button variant="primary" color="emerald" size="sm" class="mt-3 w-full"
-                    wire:click="downloadTemplateSiswa">
-                    Download template
-                </flux:button>
-            </div>
-
-            {{-- Form input --}}
-            <flux:input type="file" label="Pilih file Excel" size="sm" wire:model="file" accept=".xlsx" />
-
-            {{-- Control input --}}
-            <div class="flex items-center gap-2">
-                <flux:spacer />
-                <flux:modal.close>
-                    <flux:button variant="ghost" size="sm">
-                        Cancel
-                    </flux:button>
-                </flux:modal.close>
-                <flux:button wire:click="import" wire:loading.attr="disabled" variant="primary" color="emerald"
-                    size="sm" class="w-full">
-                    <span wire:loading.remove wire:target="import">
-                        Upload
-                    </span>
-                    <span wire:loading wire:target="import">
-                        Uploading...
-                    </span>
-                </flux:button>
-            </div>
-        </div>
-    </flux:modal>
-
-    {{-- Modal upload template SK --}}
-    <flux:modal name="modal-upload-sk-template" class="min-w-[22rem]"
-        x-on:close-modal.window="$flux.modal('modal-upload-sk-template').close()">
-        <div class="space-y-6">
-
-            {{-- Modal heading --}}
-            <div>
-                <flux:heading size="lg">
-                    Upload template SK
-                </flux:heading>
-                <flux:text class="mt-2">
-                    Pilih file Word (.docx) yang akan dijadikan template untuk generate SK siswa.
-                    <br>
-                    Pastikan file memiliki placeholder yang sesuai dengan format yang dibutuhkan.
-                </flux:text>
-            </div>
-
-            {{-- Form input --}}
-            <flux:input type="file" label="Pilih file Word" size="sm" wire:model="template_sk"
-                accept=".docx" />
-
-            {{-- Control input --}}
-            <div class="flex items-center gap-2">
-                <flux:spacer />
-                <flux:modal.close>
-                    <flux:button variant="ghost" size="sm">
-                        Cancel
-                    </flux:button>
-                </flux:modal.close>
-                <flux:button wire:click="uploadTemplateSK" wire:loading.attr="disabled"
-                    wire:target="template_sk,uploadTemplateSK" variant="primary" color="emerald" size="sm"
-                    class="w-full">
-                    <span wire:loading.remove wire:target="template_sk,uploadTemplateSK">
-                        Upload
-                    </span>
-                    <span wire:loading wire:target="template_sk,uploadTemplateSK">
-                        Uploading...
-                    </span>
-                </flux:button>
             </div>
         </div>
     </flux:modal>

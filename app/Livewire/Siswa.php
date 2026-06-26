@@ -140,32 +140,6 @@ class Siswa extends Component
         $this->dispatch('close-modal');
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | Download Template Siswa
-    |--------------------------------------------------------------------------
-    */
-    public function downloadTemplateSiswa()
-    {
-        $path = public_path('templates/template-siswa.xlsx');
-
-        // Cek file template
-        if (!file_exists($path)) {
-
-            Flux::toast(
-                heading: 'Peringatan',
-                text: 'Template siswa belum tersedia.',
-                variant: 'warning',
-            );
-
-            return;
-        }
-
-        return response()->download(
-            $path,
-            'template-siswa.xlsx'
-        );
-    }
 
     /*
     |--------------------------------------------------------------------------
@@ -334,89 +308,6 @@ class Siswa extends Component
             ->deleteFileAfterSend(true);
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | Upload Template SK
-    |--------------------------------------------------------------------------
-    */
-    public function uploadTemplateSK()
-    {
-        $this->validate([
-            'template_sk' => 'required|mimes:docx'
-        ]);
-
-        // Simpan sementara di storage
-        $path = $this->template_sk->storeAs(
-            'temp',
-            'template-sk.docx'
-        );
-
-        // Copy ke public/templates
-        copy(
-            storage_path('app/private/' . $path),
-            public_path('templates/template-sk.docx')
-        );
-
-        Flux::toast(
-            heading: 'Berhasil',
-            text: 'Template SK berhasil diupload.',
-            variant: 'success',
-        );
-
-        $this->reset('template_sk');
-        $this->dispatch('close-modal');
-    }
-
-    /*
-    |--------------------------------------------------------------------------
-    | Import data siswa dari Excel
-    |--------------------------------------------------------------------------
-    */
-    public function import()
-    {
-        $this->validate([
-            'file' => 'required|mimes:xlsx,xls'
-        ]);
-
-        $rows = Excel::toArray([], $this->file);
-        if (empty($rows[0])) {
-            Flux::toast(
-                variant: 'danger',
-                text: 'File Excel kosong.'
-            );
-            return;
-        }
-
-        foreach ($rows[0] as $index => $row) {
-            // Skip header
-            if ($index == 0) {
-                continue;
-            }
-
-            // Skip row kosong
-            if (empty($row[0])) {
-                continue;
-            }
-
-            SiswaModel::create([
-                'nis' => $row[0] ?? '',
-                'nisn' => $row[1] ?? '',
-                'nama' => $row[2] ?? '',
-                'no_ujian' => $row[3] ?? '',
-                'kompetensi_keahlian' => $row[4] ?? '',
-                'status' => $row[5] ?? '',
-            ]);
-        }
-
-        Flux::toast(
-            heading: 'Berhasil',
-            variant: 'success',
-            text: 'Data siswa berhasil diimpor.'
-        );
-
-        $this->reset('file');
-        $this->dispatch('close-modal');
-    }
 
     /*
     |--------------------------------------------------------------------------
