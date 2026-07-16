@@ -85,12 +85,12 @@
                         <flux:dropdown position="bottom" align="end">
                             <flux:button variant="ghost" size="sm" icon="ellipsis-horizontal" inset="top bottom" />
                             <flux:menu>
-                                <flux:modal.trigger name="siswa-modal">
+                                <flux:modal.trigger name="modal-tambah-siswa">
                                     <flux:menu.item icon="pencil" wire:click="edit({{ $row->id }})">
                                         Edit
                                     </flux:menu.item>
                                 </flux:modal.trigger>
-                                <flux:modal.trigger name="delete-siswa">
+                                <flux:modal.trigger name="modal-delete-siswa">
                                     <flux:menu.item icon="trash" variant="danger"
                                         wire:click="confirmDelete({{ $row->id }})">
                                         Delete
@@ -109,6 +109,28 @@
             @endforelse
         </flux:table.rows>
     </flux:table>
+
+    <script>
+        document.addEventListener('livewire:initialized', () => {
+            Livewire.on('download-file', (event) => {
+                const payload = event || {};
+                const url = payload.url;
+                const filename = payload.filename || '';
+
+                if (!url) {
+                    return;
+                }
+
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = filename;
+                link.target = '_blank';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            });
+        });
+    </script>
 
     {{-- Modal add and edit --}}
     <flux:modal name="modal-tambah-siswa" class="min-w-[22rem]"
@@ -165,8 +187,8 @@
     </flux:modal>
 
     {{-- Modal delete --}}
-    <flux:modal name="delete-siswa" class="min-w-[22rem]"
-        x-on:close-modal.window="$flux.modal('delete-siswa').close()">
+    <flux:modal name="modal-delete-siswa" class="min-w-[22rem]"
+        x-on:close-modal.window="$flux.modal('modal-delete-siswa').close()">
         <div class="space-y-6">
 
             {{-- Modal heading --}}

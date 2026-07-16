@@ -2,11 +2,11 @@
 
 namespace App\Livewire;
 
+use App\Models\Siswa;
 use Flux\Flux;
+use Illuminate\Support\Facades\DB;
 use Livewire\Component;
 use Livewire\WithFileUploads;
-use Illuminate\Support\Facades\DB;
-use App\Models\Siswa as SiswaModel;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 
 class Importsiswa extends Component
@@ -22,10 +22,9 @@ class Importsiswa extends Component
         ]);
 
         try {
-
             $spreadsheet = IOFactory::load($this->file->getRealPath());
-            $sheet       = $spreadsheet->getActiveSheet();
-            $rows        = $sheet->toArray();
+            $sheet = $spreadsheet->getActiveSheet();
+            $rows = $sheet->toArray();
 
             if (count($rows) <= 1) {
                 Flux::toast(
@@ -33,34 +32,46 @@ class Importsiswa extends Component
                     variant: 'danger',
                     text: 'File Excel kosong.'
                 );
+
                 return;
             }
 
-            DB::transaction(function () use ($rows) {
+            $imported = 0;
+
+            DB::transaction(function () use ($rows, &$imported) {
                 foreach ($rows as $index => $row) {
-
-                    // Skip header
-                    if ($index == 0) {
+                    if ($index === 0) {
                         continue;
                     }
 
-                    // Skip baris kosong
-                    if (empty($row[0])) {
+                    $nis = isset($row[0]) ? trim((string) $row[0]) : '';
+                    if ($nis === '') {
                         continue;
                     }
 
-                    SiswaModel::updateOrCreate(
-                        [
-                            'nis' => trim($row[0]),
-                        ],
-                        [
-                            'nisn'                  => trim($row[1] ?? ''),
-                            'nama'                  => trim($row[2] ?? ''),
-                            'no_ujian'              => trim($row[3] ?? ''),
-                            'kompetensi_keahlian'   => trim($row[4] ?? ''),
-                            'status'                => trim($row[5] ?? ''),
-                        ]
-                    );
+                    $noUjian = isset($row[3]) ? trim((string) $row[3]) : '';
+                    if ($noUjian === '') {
+                        $noUjian = 'NO-UJIAN-' . $nis;
+                    }
+
+                    $data = [
+                        'nis' => $nis,
+                        'nisn' => isset($row[1]) ? trim((string) $row[1]) : '',
+                        'nama' => isset($row[2]) ? trim((string) $row[2]) : '',
+                        'no_ujian' => $noUjian,
+                        'kompetensi_keahlian' => isset($row[4]) ? trim((string) $row[4]) : '',
+                        'status' => isset($row[5]) ? trim((string) $row[5]) : '',
+                    ];
+
+                    $existing = Siswa::where('nis', $data['nis'])->first();
+                    if ($existing) {
+                        $existing->fill($data);
+                        $existing->save();
+                    } else {
+                        Siswa::create($data);
+                    }
+
+                    $imported++;
                 }
             });
 
@@ -69,13 +80,15 @@ class Importsiswa extends Component
             Flux::toast(
                 heading: 'Berhasil',
                 variant: 'success',
-                text: 'Data siswa berhasil diimpor.'
+                text: $imported > 0
+                    ? "Data siswa berhasil diimpor ({$imported} data)."
+                    : 'Tidak ada data siswa yang diimpor.'
             );
         } catch (\Throwable $e) {
             Flux::toast(
                 heading: 'Gagal',
                 variant: 'danger',
-                text: $e->getMessage()
+                text: 'Import gagal: ' . $e->getMessage()
             );
         }
     }

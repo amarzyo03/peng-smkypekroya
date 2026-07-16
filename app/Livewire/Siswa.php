@@ -12,15 +12,12 @@ use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Barryvdh\DomPDF\Facade\Pdf;
 use PhpOffice\PhpWord\TemplateProcessor;
-use PhpOffice\PhpWord\IOFactory;
-use PhpOffice\PhpWord\Settings;
 
 class Siswa extends Component
 {
     // Traits for pagination and file uploads
     use WithPagination;
     use WithFileUploads;
-
 
     // Public properties for managing state
     public $editId = null;
@@ -38,7 +35,8 @@ class Siswa extends Component
     public $status;
     public $file;
     public $template_sk;
-
+    public $downloadUrl = null;
+    public $downloadFileName = null;
 
     /*
     |--------------------------------------------------------------------------
@@ -140,20 +138,17 @@ class Siswa extends Component
         $this->dispatch('close-modal');
     }
 
-
     /*
     |--------------------------------------------------------------------------
-    | Download SK Word (per siswa atau semua dalam ZIP)
+    | Download SK Word per siswa
     |--------------------------------------------------------------------------
     */
-    public function downloadSK($id = null)
+    public function downloadSK($id)
     {
-        // Membuat folder temp jika belum ada
         if (!file_exists(public_path('temp'))) {
             mkdir(public_path('temp'), 0777, true);
         }
 
-        // Cek template SK
         if (!file_exists(public_path('templates/template-sk.docx'))) {
             Flux::toast(
                 heading: 'Peringatan',
@@ -163,59 +158,28 @@ class Siswa extends Component
             return;
         }
 
-        // Download SK per siswa
-        if ($id) {
-            $siswa    = SiswaModel::findOrFail($id);
-            $template = new TemplateProcessor(
-                public_path('templates/template-sk.docx')
-            );
+        $siswa = SiswaModel::findOrFail($id);
+        $template = new TemplateProcessor(
+            public_path('templates/template-sk.docx')
+        );
 
-            $template->setValue('nis', $siswa->nis);
-            $template->setValue('nisn', $siswa->nisn);
-            $template->setValue('nama', strtoupper($siswa->nama));
-            $template->setValue('no_peserta', $siswa->no_ujian);
-            $template->setValue('kompetensi_keahlian', strtoupper($siswa->kompetensi_keahlian));
-            $template->setValue('status', strtoupper($siswa->status));
+        $template->setValue('nis', $siswa->nis);
+        $template->setValue('nisn', $siswa->nisn);
+        $template->setValue('nama', strtoupper($siswa->nama));
+        $template->setValue('no_peserta', $siswa->no_ujian);
+        $template->setValue('kompetensi_keahlian', strtoupper($siswa->kompetensi_keahlian));
+        $template->setValue('status', strtoupper($siswa->status));
 
-            $filename = 'SK-' . $siswa->nama . '.docx';
-            $path     = public_path('temp/' . $filename);
+        $filename = 'SK-' . $siswa->nama . '.docx';
+        $path = public_path('temp/' . $filename);
 
-            $template->saveAs($path);
-            return response()->download($path)->deleteFileAfterSend(true);
-        }
+        $template->saveAs($path);
 
-        // Download semua SK dalam ZIP
-        $siswas      = SiswaModel::all();
-        $zipFileName = 'SEMUA-SK.zip';
-        $zipPath     = public_path('temp/' . $zipFileName);
-        $zip         = new \ZipArchive;
+        $this->downloadUrl = asset('temp/' . $filename);
+        $this->downloadFileName = $filename;
+        $this->dispatch('download-file', url: $this->downloadUrl, filename: $this->downloadFileName);
 
-        if ($zip->open($zipPath, \ZipArchive::CREATE | \ZipArchive::OVERWRITE) === true) {
-            foreach ($siswas as $siswa) {
-                $template = new TemplateProcessor(
-                    public_path('templates/template-sk.docx')
-                );
-
-                $template->setValue('nis', $siswa->nis);
-                $template->setValue('nisn', $siswa->nisn);
-                $template->setValue('nama', strtoupper($siswa->nama));
-                $template->setValue('no_peserta', $siswa->no_ujian);
-                $template->setValue('kompetensi_keahlian', strtoupper($siswa->kompetensi_keahlian));
-                $template->setValue('status', strtoupper($siswa->status));
-
-                $filename = 'SK-' . $siswa->nama . '.docx';
-                $filePath = public_path('temp/' . $filename);
-
-                $template->saveAs($filePath);
-                $zip->addFile($filePath, $filename);
-            }
-            $zip->close();
-        }
-
-        foreach (glob(public_path('temp/*.docx')) as $file) {
-            unlink($file);
-        }
-        return response()->download($zipPath)->deleteFileAfterSend(true);
+        return;
     }
 
     /*
@@ -238,74 +202,67 @@ class Siswa extends Component
             mkdir(public_path('temp'), 0777, true);
         }
 
-        $siswas  = $id ? SiswaModel::where('id', $id)->get() : SiswaModel::all();
-        $zipPath = public_path('temp/SK_Semua.zip');
-        $zip     = new \ZipArchive;
+        $siswa = SiswaModel::findOrFail($id);
+        $template = new TemplateProcessor(
+            public_path('templates/template-sk.docx')
+        );
 
-        if ($zip->open($zipPath, \ZipArchive::CREATE | \ZipArchive::OVERWRITE) === true) {
-            foreach ($siswas as $siswa) {
-                $template = new TemplateProcessor(
-                    public_path('templates/template-sk.docx')
-                );
+        $template->setValue('nis', $siswa->nis);
+        $template->setValue('nisn', $siswa->nisn);
+        $template->setValue('nama', strtoupper($siswa->nama));
+        $template->setValue('no_peserta', $siswa->no_ujian);
+        $template->setValue('kompetensi_keahlian', strtoupper($siswa->kompetensi_keahlian));
+        $template->setValue('status', strtoupper($siswa->status));
 
-                $template->setValue('nis', $siswa->nis);
-                $template->setValue('nisn', $siswa->nisn);
-                $template->setValue('nama', strtoupper($siswa->nama));
-                $template->setValue('no_peserta', $siswa->no_ujian);
-                $template->setValue('kompetensi_keahlian', strtoupper($siswa->kompetensi_keahlian));
-                $template->setValue('status', strtoupper($siswa->status));
+        $namaFile = 'SK-' . preg_replace('/[^A-Za-z0-9._-]/', '-', strtolower($siswa->nama));
+        $docxPath = public_path("temp/{$namaFile}.docx");
+        $pdfPath  = public_path("temp/{$namaFile}.pdf");
 
-                $namaFile = 'SK-' . str_replace(' ', '-', strtolower($siswa->nama));
-                $docxPath = public_path("temp/{$namaFile}.docx");
-                $pdfPath  = public_path("temp/{$namaFile}.pdf");
+        $template->saveAs($docxPath);
 
-                $template->saveAs($docxPath);
-
-                $command = '"C:\\Program Files\\LibreOffice\\program\\soffice.exe" --headless --convert-to pdf "' . $docxPath . '" --outdir "' . public_path('temp') . '"';
-                exec($command);
-
-                $attempt = 0;
-                while (!file_exists($pdfPath) && $attempt < 10) {
-                    usleep(500000);
-                    $attempt++;
-                }
-
-                if (file_exists($pdfPath)) {
-                    $zip->addFile($pdfPath, basename($pdfPath));
-                }
-
-                if (file_exists($docxPath)) unlink($docxPath);
-            }
-            $zip->close();
-        }
-
-
-        if ($id) {
-            $siswa = SiswaModel::findOrFail($id);
+        $sofficePath = 'C:\\Program Files\\LibreOffice\\program\\soffice.exe';
+        if (!file_exists($sofficePath)) {
             Flux::toast(
-                heading: 'Berhasil',
-                text: 'SK ' . $siswa->nama . ' berhasil diunduh.',
-                variant: 'success',
+                heading: 'Peringatan',
+                text: 'LibreOffice belum terinstal atau path tidak ditemukan.',
+                variant: 'warning',
             );
-
-            $pdfFile = glob(public_path('temp/*.pdf'))[0] ?? null;
-            if ($pdfFile) {
-                return response()->download(
-                    $pdfFile,
-                    'SK_' . str_replace(' ', '-', strtolower($siswa->nama)) . '.pdf'
-                )->deleteFileAfterSend(true);
-            }
             return;
         }
 
+        $command = '"' . $sofficePath . '" --headless --convert-to pdf "' . $docxPath . '" --outdir "' . public_path('temp') . '"';
+        exec($command, $output, $exitCode);
+
+        $attempt = 0;
+        while (!file_exists($pdfPath) && $attempt < 10) {
+            usleep(500000);
+            $attempt++;
+        }
+
+        if (!file_exists($pdfPath) || $exitCode !== 0) {
+            Flux::toast(
+                heading: 'Gagal',
+                text: 'File PDF gagal dibuat. Periksa instalasi LibreOffice.',
+                variant: 'danger',
+            );
+            return;
+        }
+
+        $this->downloadUrl = asset('temp/' . basename($pdfPath));
+        $this->downloadFileName = 'SK_' . preg_replace('/[^A-Za-z0-9._-]/', '-', strtolower($siswa->nama)) . '.pdf';
+        $this->dispatch('download-file', url: $this->downloadUrl, filename: $this->downloadFileName);
+
         Flux::toast(
             heading: 'Berhasil',
-            text: 'Semua SK berhasil diunduh.',
+            text: 'SK ' . $siswa->nama . ' berhasil dipersiapkan untuk diunduh.',
             variant: 'success',
         );
 
-        return response()->download($zipPath, 'SK_Semua.zip')
-            ->deleteFileAfterSend(true);
+        if (file_exists($docxPath)) {
+            unlink($docxPath);
+        }
+
+        return;
     }
 
 
