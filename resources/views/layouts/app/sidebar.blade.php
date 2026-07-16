@@ -22,13 +22,16 @@
             </flux:sidebar.group>
 
             <flux:sidebar.group expandable heading="Pengumuman" class="grid">
-                <flux:sidebar.item icon="users" :href="route('siswa')">
+                <flux:sidebar.item icon="users" :href="route('siswa')" :current="request()->routeIs('siswa')"
+                    wire:navigate>
                     {{ __('Daftar Siswa') }}
                 </flux:sidebar.item>
-                <flux:sidebar.item icon="document-arrow-down" :href="route('import-siswa')">
+                <flux:sidebar.item icon="document-arrow-down" :href="route('import-siswa')"
+                    :current="request()->routeIs('import-siswa')" wire:navigate>
                     {{ __('Import Siswa') }}
                 </flux:sidebar.item>
-                <flux:sidebar.item icon="document-arrow-up" :href="route('upload-sk')">
+                <flux:sidebar.item icon="document-arrow-up" :href="route('upload-sk')"
+                    :current="request()->routeIs('upload-sk')" wire:navigate>
                     {{ __('Upload SK') }}
                 </flux:sidebar.item>
             </flux:sidebar.group>
