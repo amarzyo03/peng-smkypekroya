@@ -65,7 +65,7 @@
                     </flux:table.cell>
                     <flux:table.cell>
                         <flux:tooltip content="Download SK PDF" position="top">
-                            <flux:button size="sm" variant="primary" color="red" icon="arrow-down-tray"
+                            <flux:button size="sm" variant="primary" color="rose" icon="arrow-down-tray"
                                 wire:click="downloadSKPDF({{ $row->id }})" wire:loading.attr="disabled"
                                 wire:target="downloadSKPDF({{ $row->id }})">
                                 <div class="flex items-center gap-2">

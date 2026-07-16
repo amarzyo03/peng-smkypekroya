@@ -4,6 +4,18 @@
     <flux:subheading size="lg">Upload template SK Kelulusan</flux:subheading>
     <flux:separator variant="subtle" class="my-6" />
 
+    <div class="mb-6 flex flex-wrap items-center justify-between gap-3">
+        <flux:text class="text-zinc-500">{{ $this->templateSkStatus['message'] }}</flux:text>
+        <div class="flex flex-wrap gap-2">
+            <flux:button variant="filled" icon="trash" wire:click="cleanupTempSkFiles">
+                Bersihkan File Temp
+            </flux:button>
+            <flux:button variant="primary" color="red" icon="trash" wire:click="deleteTemplateSk">
+                Hapus Template
+            </flux:button>
+        </div>
+    </div>
+
     {{-- Form --}}
     <form wire:submit="save" class="max-auto space-y-6">
         <flux:card>

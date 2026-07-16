@@ -5,11 +5,16 @@
     <flux:separator variant="subtle" class="my-6" />
 
     {{-- Download Template --}}
-    <div class="mb-6 flex justify-between items-center">
-        <flux:text class="text-zinc-500">Gunakan template Excel agar format data sesuai.</flux:text>
-        <flux:button variant="filled" icon="arrow-down-tray" wire:click="downloadTemplateSiswa" target="_blank">
-            Download Template
-        </flux:button>
+    <div class="mb-6 flex flex-wrap items-center justify-between gap-3">
+        <flux:text class="text-zinc-500">Import data siswa dengan format yang sesuai | Template tersedia</flux:text>
+        <div class="flex flex-wrap gap-2">
+            <flux:button variant="primary" color="red" icon="trash" wire:click="truncateStudents">
+                Hapus Semua Siswa
+            </flux:button>
+            <flux:button variant="primary" color="green" icon="arrow-down-tray" wire:click="downloadTemplateSiswa">
+                Download Template
+            </flux:button>
+        </div>
     </div>
 
     {{-- Form Import --}}

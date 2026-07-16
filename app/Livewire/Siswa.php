@@ -182,6 +182,65 @@ class Siswa extends Component
         return;
     }
 
+    protected function resolveLibreOfficePath(): ?string
+    {
+        $pathEnv = getenv('PATH');
+        $envLibreOfficePath = getenv('LIBREOFFICE_PATH') ?: getenv('LIBREOFFICE') ?: null;
+
+        foreach (array_filter([$envLibreOfficePath]) as $candidate) {
+            if (is_string($candidate) && $candidate !== '' && file_exists($candidate) && is_executable($candidate)) {
+                return $candidate;
+            }
+        }
+
+        if ($pathEnv) {
+            foreach (explode(PATH_SEPARATOR, $pathEnv) as $dir) {
+                if ($dir === '') {
+                    continue;
+                }
+
+                foreach (['soffice', 'soffice.exe', 'soffice.bin'] as $name) {
+                    $candidate = rtrim($dir, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . $name;
+                    if (file_exists($candidate) && is_executable($candidate)) {
+                        return $candidate;
+                    }
+                }
+            }
+        }
+
+        $commonPaths = [
+            'C:\\Program Files\\LibreOffice\\program\\soffice.exe',
+            'C:\\Program Files\\LibreOffice\\program\\soffice',
+            'C:\\Program Files (x86)\\LibreOffice\\program\\soffice.exe',
+            'C:\\Program Files (x86)\\LibreOffice\\program\\soffice',
+            'D:\\Program Files\\LibreOffice\\program\\soffice.exe',
+            'D:\\Program Files (x86)\\LibreOffice\\program\\soffice.exe',
+            '/usr/bin/soffice',
+            '/usr/local/bin/soffice',
+            '/opt/libreoffice/program/soffice',
+            '/snap/bin/soffice',
+        ];
+
+        foreach ($commonPaths as $candidate) {
+            if (file_exists($candidate) && is_executable($candidate)) {
+                return $candidate;
+            }
+        }
+
+        $output = [];
+        @exec('which soffice 2>/dev/null', $output, $code);
+        if ($code === 0 && !empty($output[0])) {
+            return trim($output[0]);
+        }
+
+        @exec('where soffice 2>/dev/null', $output, $code);
+        if ($code === 0 && !empty($output[0])) {
+            return trim($output[0]);
+        }
+
+        return null;
+    }
+
     /*
     |--------------------------------------------------------------------------
     | Download SK PDF (per siswa atau semua dalam ZIP)
@@ -220,8 +279,8 @@ class Siswa extends Component
 
         $template->saveAs($docxPath);
 
-        $sofficePath = 'C:\\Program Files\\LibreOffice\\program\\soffice.exe';
-        if (!file_exists($sofficePath)) {
+        $sofficePath = $this->resolveLibreOfficePath();
+        if ($sofficePath === null) {
             Flux::toast(
                 heading: 'Peringatan',
                 text: 'LibreOffice belum terinstal atau path tidak ditemukan.',
@@ -230,7 +289,7 @@ class Siswa extends Component
             return;
         }
 
-        $command = '"' . $sofficePath . '" --headless --convert-to pdf "' . $docxPath . '" --outdir "' . public_path('temp') . '"';
+        $command = escapeshellarg($sofficePath) . ' --headless --convert-to pdf ' . escapeshellarg($docxPath) . ' --outdir ' . escapeshellarg(public_path('temp'));
         exec($command, $output, $exitCode);
 
         $attempt = 0;

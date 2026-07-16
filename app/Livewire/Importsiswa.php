@@ -5,6 +5,7 @@ namespace App\Livewire;
 use App\Models\Siswa;
 use Flux\Flux;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\File;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 use PhpOffice\PhpSpreadsheet\IOFactory;
@@ -113,6 +114,43 @@ class Importsiswa extends Component
             $path,
             'template-siswa.xlsx'
         );
+    }
+
+    public function truncateStudents()
+    {
+        try {
+            $driver = DB::getDriverName();
+
+            if ($driver === 'sqlite') {
+                DB::statement('PRAGMA foreign_keys = OFF');
+                Siswa::truncate();
+                DB::statement('PRAGMA foreign_keys = ON');
+            } else {
+                DB::statement('SET FOREIGN_KEY_CHECKS=0');
+                Siswa::truncate();
+                DB::statement('SET FOREIGN_KEY_CHECKS=1');
+            }
+
+            Flux::toast(
+                heading: 'Berhasil',
+                text: 'Semua data siswa berhasil dihapus.',
+                variant: 'success',
+            );
+        } catch (\Throwable $e) {
+            if (DB::getDriverName() === 'sqlite') {
+                try {
+                    DB::statement('PRAGMA foreign_keys = ON');
+                } catch (\Throwable $ignored) {
+                    // ignore
+                }
+            }
+
+            Flux::toast(
+                heading: 'Gagal',
+                text: 'Gagal menghapus data siswa: ' . $e->getMessage(),
+                variant: 'danger',
+            );
+        }
     }
 
     public function render()
