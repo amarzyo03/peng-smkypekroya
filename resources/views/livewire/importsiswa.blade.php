@@ -1,5 +1,4 @@
 <div class="relative w-full">
-
     {{-- Header --}}
     <flux:heading size="xl" level="1"> Import Data Siswa </flux:heading>
     <flux:subheading size="lg"> Import data siswa dari file Microsoft Excel (.xlsx)</flux:subheading>

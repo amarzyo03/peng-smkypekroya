@@ -6,33 +6,25 @@
 
     {{-- Control --}}
     <div class="flex w-full items-center gap-1 mb-2">
-
         {{-- Export Button --}}
         <flux:dropdown>
             <flux:button variant="primary" color="rose" size="sm">Export</flux:button>
             <flux:menu>
-                <flux:menu.item wire:click="exportExcel" icon="document-text">
-                    Excel (.xlsx)
-                </flux:menu.item>
-                <flux:menu.item wire:click="exportPDF" icon="document-text">
-                    PDF (.pdf)
-                </flux:menu.item>
+                <flux:menu.item wire:click="exportExcel" icon="document-text">Excel (.xlsx)</flux:menu.item>
+                <flux:menu.item wire:click="exportPDF" icon="document-text">PDF (.pdf)</flux:menu.item>
             </flux:menu>
         </flux:dropdown>
 
         {{-- Add Button --}}
         <flux:modal.trigger name="modal-tambah-siswa">
-            <flux:button variant="primary" color="blue" size="sm" wire:click="create">
-                Tambah
-            </flux:button>
+            <flux:button variant="primary" color="blue" size="sm" wire:click="create">Tambah</flux:button>
         </flux:modal.trigger>
-
     </div>
 
     {{-- Search --}}
     <flux:input icon="magnifying-glass" placeholder="Pencarian" size="sm"
         wire:model.live.debounce.300ms="search" />
- 
+
     {{-- Separator --}}
     <flux:separator variant="subtle" class="mt-6" />
 
@@ -93,7 +85,6 @@
                         <flux:dropdown position="bottom" align="end">
                             <flux:button variant="ghost" size="sm" icon="ellipsis-horizontal" inset="top bottom" />
                             <flux:menu>
-
                                 <flux:modal.trigger name="siswa-modal">
                                     <flux:menu.item icon="pencil" wire:click="edit({{ $row->id }})">
                                         Edit
@@ -125,14 +116,12 @@
         <div class="space-y-6">
 
             {{-- Heading modal --}}
-            <div>
-                <flux:heading size="lg">
-                    {{ $editId ? 'Edit Siswa' : 'Tambah Siswa' }}
-                </flux:heading>
-                <flux:text class="mt-2">
-                    Manage siswa details.
-                </flux:text>
-            </div>
+            <flux:heading size="lg">
+                {{ $editId ? 'Edit Siswa' : 'Tambah Siswa' }}
+            </flux:heading>
+            <flux:text class="mt-2">
+                Manage siswa details.
+            </flux:text>
 
             {{-- Form input --}}
             <flux:input label="NIS" placeholder="Masukkan NIS" size="sm" wire:model="nis" autofocus />
@@ -181,16 +170,14 @@
         <div class="space-y-6">
 
             {{-- Modal heading --}}
-            <div>
-                <flux:heading size="lg">
-                    Delete siswa?
-                </flux:heading>
-                <flux:text class="mt-2">
-                    Proses ini akan menghapus data siswa secara permanen.
-                    <br>
-                    Tindakan ini tidak dapat dibatalkan.
-                </flux:text>
-            </div>
+            <flux:heading size="lg">
+                Delete siswa?
+            </flux:heading>
+            <flux:text class="mt-2">
+                Proses ini akan menghapus data siswa secara permanen.
+                <br>
+                Tindakan ini tidak dapat dibatalkan.
+            </flux:text>
 
             {{-- Modal control --}}
             <div class="flex gap-2">
@@ -198,21 +185,14 @@
 
                 {{-- Cancel --}}
                 <flux:modal.close>
-                    <flux:button variant="ghost">
-                        Batal
-                    </flux:button>
+                    <flux:button variant="ghost">Batal</flux:button>
                 </flux:modal.close>
 
                 {{-- Delete --}}
                 <flux:button wire:click="delete" wire:loading.attr="disabled" variant="danger">
-                    <span wire:loading.remove wire:target="delete">
-                        Hapus!
-                    </span>
-                    <span wire:loading wire:target="delete">
-                        Proses hapus...
-                    </span>
+                    <span wire:loading.remove wire:target="delete">Hapus!</span>
+                    <span wire:loading wire:target="delete">Proses hapus...</span>
                 </flux:button>
-
             </div>
         </div>
     </flux:modal>
